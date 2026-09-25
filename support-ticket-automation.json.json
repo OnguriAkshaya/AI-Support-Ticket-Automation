@@ -1,0 +1,270 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5650adb4-72b2-462e-a041-c21434af26b2",
+              "name": "ticket_text",
+              "value": "={{ $json['Support Ticket'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        160,
+        16
+      ],
+      "id": "f537176d-3be1-46b8-9f81-b1539b3866fe",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analyze the following support ticket and provide a clear response:\n\n{{ $json.ticket_text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "a2c91038-8f3e-4a9f-bb2d-b40ae3ae9cc2",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qghsHYWkQKgne6nr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CzF8gJ4AloqLTF9zMILCIDXvVD9znU6MjODUgRj0uyo",
+          "mode": "list",
+          "cachedResultName": "Support Ticket Responses",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CzF8gJ4AloqLTF9zMILCIDXvVD9znU6MjODUgRj0uyo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CzF8gJ4AloqLTF9zMILCIDXvVD9znU6MjODUgRj0uyo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Ticket": "={{ $('Edit Fields').item.json.ticket_text }}",
+            "Gemini Response": "={{ $('Message a model').item.json.content.parts[0].text }}",
+            " status": "New"
+          },
+          "matchingColumns": [
+            "Ticket"
+          ],
+          "schema": [
+            {
+              "id": "Ticket",
+              "displayName": "Ticket",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Gemini Response",
+              "displayName": "Gemini Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": " status",
+              "displayName": " status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        0
+      ],
+      "id": "75d11ac3-85df-44d8-8597-7f858bcec806",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J1Swe1msRJu6XVpg",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Support Ticket Form",
+        "formDescription": "Submit your support issue and our AI will analyze it and provide a response.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Support Ticket",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "06cc1273-ed35-4da0-a343-165de9346927",
+      "name": "On form submission",
+      "webhookId": "6ad48dcc-8da3-420f-a7ea-20fc2afe0958"
+    },
+    {
+      "parameters": {
+        "fromEmail": "barlaanjali1234@gmail.com",
+        "toEmail": "barlaanjali1234@gmail.com",
+        "subject": "Support Ticket Response",
+        "emailFormat": "={{ $json['Gemini Response'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        688,
+        304
+      ],
+      "id": "8e2b6539-a06c-4a7b-afe2-c217d6584969",
+      "name": "Send an Email",
+      "webhookId": "605c9db3-10c3-44a4-b055-7c722b79eaa2",
+      "credentials": {
+        "smtp": {
+          "id": "X7Q9fpA0euMsZe34",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "e18971ad-e5bc-4511-af5b-851546e8f3da",
+      "name": "Wait",
+      "webhookId": "8c7178a0-1ffd-4af6-af31-7429997c7c3e"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70e4bdd3-d49a-4a28-bfa2-9171562236bd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcedcb3492379abcf156f6c58d5ce91b38822e9239c7774c3d4c61c9504f48d4"
+  },
+  "nodeGroups": [],
+  "id": "lnSFqOVn4tf5qq8j",
+  "tags": []
+}
